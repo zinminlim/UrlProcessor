@@ -24,8 +24,6 @@ public class UrlHttpClient {
         GetMethod get = new GetMethod(url);
         try {
            return client.executeMethod(get);
-
-            // print response to stdout
         }catch(Exception e){
             return 500;
 

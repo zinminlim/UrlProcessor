@@ -15,8 +15,8 @@ public class UrlProcessor {
     private ExecutorService threadPoolExecutor = null;
     ScheduledExecutorService scheduledExecutorService = null;
 
-    AtomicLong successCount;
-    AtomicLong errorCount;
+    AtomicLong successCount = new AtomicLong();
+    AtomicLong errorCount = new AtomicLong();
 
     public void initThreadPools(){
         queue = new ArrayBlockingQueue<String>(50);
@@ -80,7 +80,7 @@ public class UrlProcessor {
                    numUrls = numUrls + processEachFile(file);
                 }
             }
-           // queue.add("POISON");
+            queue.add("POISON");
         }catch (Exception e){
             //
         }
@@ -91,7 +91,7 @@ public class UrlProcessor {
 
     public static void main (String[] args){
         UrlProcessor urlProcessor = new UrlProcessor();
-       // urlProcessor.initThreadPools();
+        urlProcessor.initThreadPools();
         urlProcessor.processUrls();
     }
 
@@ -105,7 +105,7 @@ public class UrlProcessor {
 
             String str;
             while ((str = br.readLine()) != null) {
-               // queue.add(str);
+                queue.put(str);
                 count++;
             }
 
