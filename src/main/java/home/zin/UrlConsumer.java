@@ -1,5 +1,8 @@
 package home.zin;
 
+import java.io.IOException;
+import java.net.URI;
+import java.time.Duration;
 import java.util.concurrent.BlockingQueue;
 
 public class UrlConsumer implements Runnable {
@@ -24,7 +27,11 @@ public class UrlConsumer implements Runnable {
     }
 
     private void process(String take) throws InterruptedException {
-        int status = UrlHttpClient.processUrl(take);
+     //   makeHttpRequestSync(take);
+       // int status = JavaHttpClient.processUrl(take);
+        int status = MultiThreadedHttpClient.processUrl(take);
+        //int status = UrlConnectionClient.processUrl(take);
+        //int status = UrlConnectionClient.processUrl(take);
         if (status == 200){
             urlProcessor.successCount.incrementAndGet();
         }else{
@@ -36,6 +43,9 @@ public class UrlConsumer implements Runnable {
         this.queue = queue;
         this.urlProcessor = urlProcessor;
     }
+
+
+
 }
 
 

@@ -10,7 +10,7 @@ import java.util.zip.GZIPInputStream;
 
 public class UrlProcessor {
 
-    private int NUM_CONSUMERS = 10;
+    private int NUM_CONSUMERS = 200;
     private BlockingQueue<String> queue = null;
     private ExecutorService threadPoolExecutor = null;
     ScheduledExecutorService scheduledExecutorService = null;
@@ -22,7 +22,7 @@ public class UrlProcessor {
         queue = new ArrayBlockingQueue<String>(50);
         threadPoolExecutor = Executors.newFixedThreadPool(NUM_CONSUMERS);
         scheduledExecutorService = new ScheduledThreadPoolExecutor(1);
-        scheduledExecutorService.scheduleWithFixedDelay(new StatusPrinter(this), 1000, 1000, TimeUnit.MILLISECONDS);
+        scheduledExecutorService.scheduleWithFixedDelay(new StatusPrinter(this), 3, 3, TimeUnit.SECONDS);
         for (int i=0; i < NUM_CONSUMERS; i++){
             threadPoolExecutor.submit(new UrlConsumer(queue, this));
         }
@@ -33,14 +33,18 @@ public class UrlProcessor {
         threadPoolExecutor.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
-            if (!threadPoolExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                 threadPoolExecutor.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!threadPoolExecutor.awaitTermination(60, TimeUnit.SECONDS))
+                if (!threadPoolExecutor.awaitTermination(5, TimeUnit.SECONDS)) {
                     System.err.println("Pool did not terminate");
+                    System.exit(1);
+                }
+
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
+            System.err.println("Pool did not terminate in exception");
             threadPoolExecutor.shutdownNow();
             // Preserve interrupt status
             Thread.currentThread().interrupt();
@@ -49,14 +53,17 @@ public class UrlProcessor {
         scheduledExecutorService.shutdown(); // Disable new tasks from being submitted
         try {
             // Wait a while for existing tasks to terminate
-            if (!scheduledExecutorService.awaitTermination(60, TimeUnit.SECONDS)) {
+            if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
                 scheduledExecutorService.shutdownNow(); // Cancel currently executing tasks
                 // Wait a while for tasks to respond to being cancelled
-                if (!scheduledExecutorService.awaitTermination(60, TimeUnit.SECONDS))
-                    System.err.println("Pool did not terminate");
+                if (!scheduledExecutorService.awaitTermination(5, TimeUnit.SECONDS)) {
+                    System.err.println("Pool did not terminate 1");
+                    System.exit(1);
+                }
             }
         } catch (InterruptedException ie) {
             // (Re-)Cancel if current thread also interrupted
+            System.err.println("Pool did not terminate in exception 1");
             scheduledExecutorService.shutdownNow();
             // Preserve interrupt status
             Thread.currentThread().interrupt();
@@ -67,7 +74,7 @@ public class UrlProcessor {
     public void processUrls(){
 
         long startTime = System.nanoTime();
-        String sourcePath = "D:/UrlFileProcessorAssignment/URLFileProcessorAssignment/inputFiles/URLFileProcessorAssignment/inputData/inputData/";
+        String sourcePath = "/Users/zlim/training/TakeHome/URLFileProcessorAssignment/inputData";
 
         long numUrls = 0;
 
@@ -85,7 +92,10 @@ public class UrlProcessor {
             //
         }
 
+
+
         System.out.println("Number of URLs:" + numUrls);
+       // System.out.println("Final Num Success:"+successCount + " Num Failure:"+errorCount);
         System.out.println("Total Time:" + (System.nanoTime() - startTime)/1000000 + " ms");
     }
 
@@ -105,6 +115,7 @@ public class UrlProcessor {
 
             String str;
             while ((str = br.readLine()) != null) {
+               // System.out.println(str);
                 queue.put(str);
                 count++;
             }
